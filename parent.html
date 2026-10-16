@@ -127,6 +127,8 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
     <p class="muted" style="margin:.3rem 0 .5rem">Colle ici les messages envoyés par les amis (un ou plusieurs à la fois). Les séries s'ajoutent automatiquement.</p>
     <textarea id="pasteIn" style="min-height:7rem" placeholder="LOTO FÉLINES · Marie Roy · 514-555-1234 · 03 07 12 18 22 29 33 40 41 47"></textarea>
     <button class="btn wide" style="margin-top:.5rem" id="pasteBtn">Ajouter les séries collées</button>
+    <label class="btn ghost wide" style="margin-top:.5rem;display:block;text-align:center" for="txtIn">Importer des fichiers d'amis (.txt)</label>
+    <input type="file" id="txtIn" accept=".txt,text/plain" multiple hidden>
     <p class="muted" id="pasteRes" style="margin:.5rem 0 0"></p>
   </section>
 
@@ -370,8 +372,8 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
     });
     return {out,bad};
   }
-  $('pasteBtn').onclick=()=>{
-    const {out,bad}=parseMsgs($('pasteIn').value);
+  function importTxt(txt,fromPaste,prefix){
+    const {out,bad}=parseMsgs(txt);
     let added=0, skipped=0;
     out.forEach(r=>{ if(sheet.rows.some(x=>key(x.nums)===key(r.nums))) skipped++; else { sheet.rows.push(r); added++; } });
     if(added){ save(); render(); }
@@ -379,10 +381,17 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
     msg.push(added?`${added} série(s) ajoutée(s).`:'Aucune nouvelle série trouvée.');
     if(skipped) msg.push(`${skipped} déjà sur la feuille (ignorée).`);
     if(bad.length) msg.push(`${bad.length} ligne(s) à vérifier : il faut exactement 10 numéros entre 01 et 49.`);
-    $('pasteRes').textContent=msg.join(' ');
-    if(added && !bad.length) $('pasteIn').value='';
+    $('pasteRes').textContent=(prefix||'')+msg.join(' ');
+    if(fromPaste && added && !bad.length) $('pasteIn').value='';
     if(added) toast(sheet.rows.length>=MIN?'Feuille complète 🎉':`${sheet.rows.length} séries sur la feuille`);
-  };
+  }
+  $('pasteBtn').onclick=()=>importTxt($('pasteIn').value,true);
+  $('txtIn').addEventListener('change',async e=>{
+    const files=[...e.target.files]; e.target.value=''; if(!files.length) return;
+    const texts=[];
+    for(const f of files){ try{ texts.push(await f.text()); }catch(err){} }
+    importTxt(texts.join('\n'),false,`${files.length} fichier(s) lu(s). `);
+  });
 
   // backup / restore
   let pending=null;
