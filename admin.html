@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Loto 10/49 Félines — Administration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<style>
+:root{
+  --bg:#eef3f7; --surface:#fff; --surface2:#f5f8fb; --ink:#0f1b2d; --muted:#5a6a7e; --line:#d5dfe9;
+  --accent:#d4a017; --accent-ink:#1a1300; --ok:#1f7a4d; --warn:#b4471d;
+  --ball:#e3e9f0; --ball-ink:#33435a; --hit:#d4a017; --hit-ink:#1a1300;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{ color-scheme:dark; --bg:#0a121e; --surface:#121d2c; --surface2:#182638; --ink:#e8eef5; --muted:#93a3b7; --line:#26374d;
+    --accent:#e8b82e; --ok:#5fcf95; --warn:#f08a62; --ball:#22334a; --ball-ink:#b7c5d6; --hit:#e8b82e; }
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:1rem}
+h1,h2,h3{font-family:"Barlow Condensed","Arial Narrow",Barlow,sans-serif;margin:0;line-height:1.05}
+h2{font-size:1.5rem}
+.hero{background:#13294b;color:#fff;border-radius:18px;padding:1.2rem 1.3rem;position:relative;overflow:hidden}
+.hero h1{font-size:clamp(2rem,7vw,2.8rem);font-weight:800}
+.kicker{color:#f2c94c;font-weight:600}
+.stripes{position:absolute;right:-30px;top:0;bottom:0;width:100px;background:repeating-linear-gradient(115deg,transparent 0 18px,rgba(212,160,23,.9) 18px 30px);pointer-events:none}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-top:.9rem;position:relative}
+@media(max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:rgba(255,255,255,.09);border-radius:10px;padding:.45rem .6rem}
+.stat b{display:block;font:800 1.4rem "Barlow Condensed",sans-serif;color:#f2c94c}
+.stat span{font-size:.82rem;opacity:.9}
+.winner{background:var(--ok);color:#fff;border-radius:16px;padding:1rem;margin-top:.8rem}
+.winner h2{font-size:1.7rem}
+.winner .w{background:rgba(255,255,255,.14);border-radius:10px;padding:.5rem .7rem;margin-top:.5rem}
+.tabs{display:flex;gap:.35rem;margin:1rem 0 .2rem;overflow-x:auto}
+.tab{flex:1;white-space:nowrap;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:.55rem .8rem;font:600 .98rem Barlow,sans-serif;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:1rem;margin-top:.8rem}
+.muted{color:var(--muted);font-size:.92rem}
+.btn{font:600 1rem Barlow,sans-serif;border:0;border-radius:12px;padding:.7rem 1rem;cursor:pointer;background:var(--accent);color:var(--accent-ink);display:inline-block;text-align:center}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:.38rem .7rem;font-size:.9rem;border-radius:9px}
+.btn.danger{background:transparent;color:var(--warn);border:1px solid var(--line)}
+.btn.armed{background:var(--warn);color:#fff;border-color:var(--warn)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.wide{width:100%}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.grow{flex:1;min-width:0}
+input[type=text],input[type=date],textarea{font:inherit;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:.6rem .75rem;width:100%}
+textarea{font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;min-height:10rem}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+input[type=file]{display:none}
+.tablewrap{overflow-x:auto;margin-top:.6rem;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:.45rem .6rem;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{background:var(--surface2);font-weight:600}
+td.n{font-variant-numeric:tabular-nums;text-align:right}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--warn);font-weight:600}
+.log{margin-top:.6rem;font-size:.92rem}
+.log div{padding:.25rem 0;border-bottom:1px dashed var(--line)}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.35rem;margin:.6rem 0;max-width:420px}
+.cell{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:700 1.05rem "Barlow Condensed",sans-serif;cursor:pointer;font-variant-numeric:tabular-nums}
+.cell[aria-pressed="true"]{background:var(--hit);color:var(--hit-ink);border-color:var(--hit)}
+.cell.past{box-shadow:inset 0 -4px 0 var(--muted)}
+.balls{display:flex;flex-wrap:wrap;gap:.22rem;margin:.35rem 0}
+.ball{width:1.9rem;height:1.9rem;border-radius:50%;display:grid;place-items:center;background:var(--ball);color:var(--ball-ink);font:700 .88rem "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums}
+.ball.hit{background:var(--hit);color:var(--hit-ink)}
+.s-item{border:1px solid var(--line);border-radius:12px;padding:.6rem .75rem;background:var(--surface2);margin-top:.5rem}
+.s-item.win{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok) inset}
+.s-head{display:flex;justify-content:space-between;gap:.6rem;align-items:baseline}
+.score{font:800 1.5rem "Barlow Condensed",sans-serif;line-height:1}
+.draw{border-bottom:1px solid var(--line);padding:.55rem 0}
+.toast{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.6rem 1rem;border-radius:10px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
+.toast.show{opacity:1}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="stripes" aria-hidden="true"></div>
+    <div class="kicker">Félines M15 B · Administration</div>
+    <h1>Loto 10/49</h1>
+    <div class="stats">
+      <div class="stat"><b id="stPlayers">0</b><span>joueuses</span></div>
+      <div class="stat"><b id="stSeries">0</b><span>séries</span></div>
+      <div class="stat"><b id="stMoney">0 $</b><span>amassés</span></div>
+      <div class="stat"><b id="stDraws">0</b><span>tirages</span></div>
+    </div>
+  </header>
+
+  <section class="winner" id="winner" hidden></section>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" data-tab="feuilles" aria-selected="true">Feuilles</button>
+    <button class="tab" data-tab="tirages" aria-selected="false">Tirages</button>
+    <button class="tab" data-tab="classement" aria-selected="false">Classement</button>
+    <button class="tab" data-tab="exporter" aria-selected="false">Exporter</button>
+  </nav>
+
+  <!-- FEUILLES -->
+  <main id="p-feuilles">
+    <section class="card">
+      <h2>Importer les feuilles des joueuses</h2>
+      <p class="muted" style="margin:.3rem 0 .7rem">Sélectionne tous les fichiers Excel reçus d'un coup. Si une joueuse envoie une nouvelle version, réimporte-la : sa feuille sera remplacée.</p>
+      <label class="btn wide" for="fileIn">Choisir les fichiers Excel</label>
+      <input type="file" id="fileIn" accept=".xlsx,.xls" multiple>
+      <div class="log" id="importLog"></div>
+    </section>
+    <section class="card">
+      <h2>Joueuses</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Joueuse</th><th>Séries</th><th>Montant</th><th>Statut</th><th></th></tr></thead>
+        <tbody id="playersBody"></tbody>
+      </table></div>
+      <p class="muted" id="playersEmpty">Aucune feuille importée.</p>
+      <p class="bad" id="dupNote" hidden></p>
+    </section>
+  </main>
+
+  <!-- TIRAGES -->
+  <main id="p-tirages" hidden>
+    <section class="card">
+      <h2>Ajouter un tirage</h2>
+      <div class="row" style="margin-top:.6rem">
+        <div class="grow" style="max-width:220px"><input type="date" id="drawDate" aria-label="Date du tirage"></div>
+        <span class="muted">Touche les numéros tirés.</span>
+      </div>
+      <div class="grid" id="drawGrid"></div>
+      <div class="balls" id="drawPicked"></div>
+      <button class="btn wide" id="addDraw" disabled style="max-width:420px">Ajouter le tirage</button>
+      <p class="muted" style="margin-top:.5rem">Les numéros soulignés sont déjà sortis lors d'un tirage précédent.</p>
+    </section>
+    <section class="card">
+      <h2>Numéros sortis jusqu'ici <span class="muted" id="drawnCount"></span></h2>
+      <div class="balls" id="drawnAll"></div>
+      <div id="drawList" style="margin-top:.5rem"></div>
+      <p class="muted" id="drawEmpty">Aucun tirage pour l'instant.</p>
+    </section>
+  </main>
+
+  <!-- CLASSEMENT -->
+  <main id="p-classement" hidden>
+    <section class="card">
+      <input type="text" id="search" placeholder="Chercher un nom, un téléphone ou une joueuse">
+      <div class="muted" id="rankInfo" style="margin-top:.5rem"></div>
+      <div id="rankList"></div>
+      <button class="btn ghost wide" id="more" style="margin-top:.7rem" hidden>Afficher plus</button>
+    </section>
+  </main>
+
+  <!-- EXPORTER -->
+  <main id="p-exporter" hidden>
+    <section class="card">
+      <h2>Fichier Excel consolidé</h2>
+      <p class="muted" style="margin:.3rem 0 .7rem">Toutes les séries dans un seul fichier, avec les numéros tirés colorés, le classement et la liste des tirages.</p>
+      <button class="btn wide" id="dlXlsx">Télécharger le fichier Excel</button>
+    </section>
+    <section class="card">
+      <h2>Résumé à partager aux parents</h2>
+      <p class="muted" style="margin:.3rem 0 .5rem">Numéros sortis et meneurs, sans numéros de téléphone.</p>
+      <textarea id="summary" readonly></textarea>
+      <button class="btn small" id="copySum" style="margin-top:.4rem">Copier le résumé</button>
+    </section>
+    <section class="card">
+      <h2>Sauvegarde</h2>
+      <p class="muted" style="margin:.3rem 0 .7rem">Les données sont gardées dans ce navigateur. Fais une sauvegarde après chaque tirage pour ne rien perdre, ou pour continuer sur un autre appareil.</p>
+      <div class="row">
+        <button class="btn grow" id="backup">Sauvegarder</button>
+        <label class="btn ghost grow" for="restoreIn">Restaurer une sauvegarde</label>
+        <input type="file" id="restoreIn" accept=".json,application/json">
+      </div>
+      <button class="btn danger wide" id="wipe" style="margin-top:.8rem">Tout effacer</button>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const pad=n=>String(n).padStart(2,'0');
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const PRICE=5, MIN=60, PRIZE=500, BONUS=50, KEY='loto-felines-admin-v1';
+  let state={players:{}, draws:[]};
+  let drawPick=new Set(), shown=60;
+
+  function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2800);}
+  const rid=()=>Math.random().toString(36).slice(2,10);
+  const key=nums=>nums.slice().sort((a,b)=>a-b).join('-');
+  const fmtDate=d=>{ try{ return new Date(d+'T12:00:00').toLocaleDateString('fr-CA',{day:'numeric',month:'long',year:'numeric'}); }catch(e){ return d; } };
+  function today(){ const d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){ toast('Attention : sauvegarde impossible dans ce navigateur'); } }
+  function load(){ try{ const v=JSON.parse(localStorage.getItem(KEY)||'null'); if(v&&v.players&&Array.isArray(v.draws)) state=v; }catch(e){} }
+
+  // two-tap confirm
+  function arm(btn,label,action,ms){
+    if(btn.dataset.armed==='1'){ clearTimeout(btn._t); btn.dataset.armed=''; btn.classList.remove('armed'); btn.textContent=btn.dataset.orig; action(); return; }
+    btn.dataset.orig=btn.textContent; btn.dataset.armed='1'; btn.classList.add('armed'); btn.textContent=label;
+    btn._t=setTimeout(()=>{ btn.dataset.armed=''; btn.classList.remove('armed'); btn.textContent=btn.dataset.orig; },ms||4000);
+  }
+
+  // ---------- computations ----------
+  function allSeries(){
+    const out=[];
+    Object.keys(state.players).sort((a,b)=>a.localeCompare(b,'fr')).forEach(p=>{
+      state.players[p].rows.forEach((r,i)=>out.push({player:p, idx:i+1, name:r.name, phone:r.phone, nums:r.nums, k:key(r.nums)}));
+    });
+    return out;
+  }
+  function compute(){
+    const series=allSeries();
+    const drawn=new Set(); state.draws.forEach(d=>d.nums.forEach(n=>drawn.add(n)));
+    // when did each series complete?
+    const cum=new Set(); const completeAt=new Map();
+    state.draws.forEach((d,di)=>{
+      d.nums.forEach(n=>cum.add(n));
+      series.forEach(s=>{ if(!completeAt.has(s) && s.nums.every(n=>cum.has(n))) completeAt.set(s,di); });
+    });
+    series.forEach(s=>{ s.hits=s.nums.filter(n=>drawn.has(n)).length; s.done=completeAt.has(s)?completeAt.get(s):Infinity; });
+    let first=Infinity; series.forEach(s=>{ if(s.done<first) first=s.done; });
+    const winners=first===Infinity?[]:series.filter(s=>s.done===first);
+    const dupCount=new Map(); series.forEach(s=>dupCount.set(s.k,(dupCount.get(s.k)||0)+1));
+    return {series, drawn, winners, winDraw:first, dupCount};
+  }
+
+  // ---------- render ----------
+  function render(){
+    const c=compute();
+    const players=Object.keys(state.players);
+    $('stPlayers').textContent=players.length;
+    $('stSeries').textContent=c.series.length;
+    $('stMoney').textContent=(c.series.length*PRICE).toLocaleString('fr-CA')+' $';
+    $('stDraws').textContent=state.draws.length;
+    renderWinner(c); renderPlayers(c); renderDraws(c); renderRank(c); renderSummary(c);
+  }
+  function renderWinner(c){
+    const w=$('winner');
+    if(!c.winners.length){ w.hidden=true; return; }
+    const d=state.draws[c.winDraw]; const share=PRIZE/c.winners.length;
+    const bonus=new Map(); c.winners.forEach(s=>bonus.set(s.player,(bonus.get(s.player)||0)+1));
+    w.hidden=false;
+    w.innerHTML=`<h2>🎉 ${c.winners.length>1?c.winners.length+' gagnants':'Gagnant'} !</h2>
+      <div>Au tirage du ${esc(fmtDate(d.date))} · ${c.winners.length>1?`${share.toFixed(2).replace('.',',')} $ chacun (500 $ partagés)`:'500 $'}</div>
+      ${c.winners.map(s=>`<div class="w"><strong>${esc(s.name)||'Sans nom'}</strong> · ${esc(s.phone)}<br>Joueuse : ${esc(s.player)} (série #${s.idx})</div>`).join('')}
+      <div style="margin-top:.6rem">Bourse de la joueuse associée : ${[...bonus].map(([p,n])=>`${esc(p)} ${n*BONUS} $`).join(' · ')}</div>`;
+  }
+  function renderPlayers(c){
+    const players=Object.keys(state.players).sort((a,b)=>a.localeCompare(b,'fr'));
+    $('playersBody').innerHTML=players.map(p=>{
+      const d=state.players[p]; const n=d.rows.length; const errs=(d.errors||[]).length;
+      return `<tr><td>${esc(p)}</td><td class="n">${n}</td><td class="n">${n*PRICE} $</td>
+        <td>${n>=MIN?'<span class="ok">Complète</span>':`<span class="bad">${n}/${MIN}</span>`}${errs?` <span class="bad">· ${errs} erreur(s)</span>`:''}</td>
+        <td><button class="btn danger small" data-rm="${esc(p)}">Retirer</button></td></tr>`;
+    }).join('');
+    $('playersEmpty').hidden=players.length>0;
+    const dups=[...c.dupCount.values()].filter(v=>v>1).reduce((a,v)=>a+v,0);
+    $('dupNote').hidden=!dups; $('dupNote').textContent=`${dups} séries ont exactement les mêmes numéros qu'une autre (visibles dans le classement).`;
+  }
+  function renderDraws(c){
+    $('drawnCount').textContent=c.drawn.size?`(${c.drawn.size}/49)`:'';
+    $('drawnAll').innerHTML=[...c.drawn].sort((a,b)=>a-b).map(n=>`<span class="ball hit">${pad(n)}</span>`).join('');
+    $('drawList').innerHTML=state.draws.map((d,i)=>({d,i})).reverse().map(({d,i})=>`<div class="draw">
+      <div class="row" style="justify-content:space-between"><strong>Tirage ${i+1} · ${esc(fmtDate(d.date))}</strong><button class="btn danger small" data-rmdraw="${esc(d.id)}">Supprimer</button></div>
+      <div class="balls">${d.nums.map(n=>`<span class="ball hit">${pad(n)}</span>`).join('')}</div></div>`).join('');
+    $('drawEmpty').hidden=state.draws.length>0;
+    grid.querySelectorAll('.cell').forEach(b=>b.classList.toggle('past',c.drawn.has(+b.dataset.n)));
+  }
+  function ranked(c){
+    return c.series.slice().sort((a,b)=>(b.hits-a.hits)||(a.done-b.done)||a.player.localeCompare(b.player,'fr')||(a.idx-b.idx));
+  }
+  function renderRank(c){
+    const q=$('search').value.trim().toLowerCase();
+    let list=ranked(c);
+    if(q) list=list.filter(s=>(s.name+' '+s.phone+' '+s.player).toLowerCase().includes(q));
+    const winSet=new Set(c.winners);
+    const dist={}; c.series.forEach(s=>dist[s.hits]=(dist[s.hits]||0)+1);
+    const top=[10,9,8,7].filter(h=>dist[h]).map(h=>`${dist[h]} à ${h}/10`).join(' · ');
+    $('rankInfo').textContent=c.series.length?(state.draws.length?(top||'Aucune série à 7/10 ou plus pour l\'instant.'):'Ajoute un tirage pour voir le classement.'):'Importe des feuilles pour commencer.';
+    $('rankList').innerHTML=list.slice(0,shown).map((s,i)=>`<div class="s-item${winSet.has(s)?' win':''}">
+      <div class="s-head"><div><strong>${esc(s.name)||'Sans nom'}</strong> <span class="muted">· ${esc(s.phone)}</span><br><span class="muted">Joueuse : ${esc(s.player)} · série #${s.idx}</span></div><div class="score">${s.hits}/10</div></div>
+      <div class="balls">${s.nums.map(n=>`<span class="ball${c.drawn.has(n)?' hit':''}">${pad(n)}</span>`).join('')}</div>
+      ${c.dupCount.get(s.k)>1?'<div class="bad" style="font-size:.85rem">Mêmes numéros qu\'une autre série</div>':''}
+    </div>`).join('');
+    $('more').hidden=list.length<=shown;
+  }
+  function renderSummary(c){
+    const lines=['LOTO 10/49 — FÉLINES M15 B'];
+    if(state.draws.length){
+      const last=state.draws[state.draws.length-1];
+      lines.push(`Après ${state.draws.length} tirage(s) (dernier : ${fmtDate(last.date)})`,'');
+      lines.push(`Numéros sortis (${c.drawn.size}/49) : ${[...c.drawn].sort((a,b)=>a-b).map(pad).join(' ')}`,'');
+      if(c.winners.length){
+        lines.push(c.winners.length>1?`🎉 ${c.winners.length} GAGNANTS — 500 $ partagés :`:'🎉 GAGNANT — 500 $ :');
+        c.winners.forEach(s=>lines.push(`• ${s.name||'Sans nom'} (joueuse : ${s.player})`));
+      } else {
+        const lead=ranked(c).filter(s=>s.hits>0).slice(0,10);
+        if(lead.length){ lines.push('Meneurs :'); lead.forEach(s=>lines.push(`• ${s.hits}/10 — ${s.name||'Sans nom'} (joueuse : ${s.player})`)); }
+      }
+    } else lines.push('Aucun tirage pour l\'instant.');
+    $('summary').value=lines.join('\n');
+  }
+
+  // ---------- import ----------
+  const str=v=>String(v??'').trim();
+  function parseSheet(aoa){
+    let player='', hdr=-1, nc=1;
+    for(let i=0;i<aoa.length;i++){
+      const row=aoa[i]||[];
+      for(let j=0;j<row.length;j++){
+        const t=str(row[j]).toUpperCase();
+        if(!player && t.startsWith('NOM DU JOU')){ for(let k=j+1;k<row.length;k++){ if(str(row[k])){ player=str(row[k]); break; } } const after=str(row[j]).split(':')[1]; if(!player&&after&&after.trim()) player=after.trim(); }
+        if(hdr<0 && t.startsWith('PARTICIPANT')){ hdr=i; nc=j; }
+      }
+      if(hdr>=0) break;
+    }
+    if(hdr<0) return null;
+    const rows=[], errors=[];
+    for(let i=hdr+1;i<aoa.length;i++){
+      const row=aoa[i]||[];
+      const name=str(row[nc]), phone=str(row[nc+1]);
+      if(/^total/i.test(name)) break;
+      const cells=row.slice(nc+2,nc+12).map(str).filter(Boolean);
+      if(!name && !phone && !cells.length) continue;
+      const nums=cells.map(x=>parseInt(x,10));
+      const uniq=[...new Set(nums)];
+      if(nums.length!==10 || uniq.length!==10 || nums.some(n=>isNaN(n)||n<1||n>49)){
+        errors.push(`ligne ${i+1}${name?' ('+name+')':''} : ${nums.length} numéro(s)${uniq.length!==nums.length?', avec doublon':''}`); continue;
+      }
+      rows.push({name, phone, nums:uniq.sort((a,b)=>a-b)});
+    }
+    return {player, rows, errors};
+  }
+  function nameFromFile(f){ return f.replace(/\.xlsx?$/i,'').replace(/^LOTO[-_ ]?FELINES[-_ ]?/i,'').replace(/[-_]+/g,' ').trim()||f; }
+
+  $('fileIn').addEventListener('change',async e=>{
+    const files=[...e.target.files]; e.target.value='';
+    if(!files.length) return;
+    if(typeof XLSX==='undefined'){ toast('Lecture Excel indisponible : vérifie ta connexion'); return; }
+    const log=[];
+    for(const f of files){
+      try{
+        const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+        let res=null;
+        for(const sn of wb.SheetNames){ res=parseSheet(XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:false,defval:''})); if(res) break; }
+        if(!res){ log.push(`<div class="bad">${esc(f.name)} : format non reconnu (colonne « PARTICIPANTS » introuvable).</div>`); continue; }
+        const p=res.player||nameFromFile(f.name);
+        const replaced=!!state.players[p];
+        state.players[p]={file:f.name, rows:res.rows, errors:res.errors, importedAt:Date.now()};
+        log.push(`<div><span class="ok">${esc(p)}</span> : ${res.rows.length} séries${replaced?' (remplace l\'ancienne version)':''}${res.errors.length?`<br><span class="bad">${res.errors.length} série(s) ignorée(s) : ${esc(res.errors.slice(0,3).join(' ; '))}${res.errors.length>3?'…':''}</span>`:''}</div>`);
+      }catch(err){ log.push(`<div class="bad">${esc(f.name)} : impossible de lire ce fichier.</div>`); }
+    }
+    $('importLog').innerHTML=log.join('');
+    save(); render();
+  });
+
+  // ---------- draws ----------
+  const grid=$('drawGrid');
+  for(let i=1;i<=49;i++){ const b=document.createElement('button'); b.type='button'; b.className='cell'; b.textContent=pad(i); b.dataset.n=i; b.setAttribute('aria-pressed','false'); grid.appendChild(b); }
+  grid.addEventListener('click',e=>{ const b=e.target.closest('.cell'); if(!b) return; const n=+b.dataset.n; drawPick.has(n)?drawPick.delete(n):drawPick.add(n); paintDraw(); });
+  function paintDraw(){
+    grid.querySelectorAll('.cell').forEach(b=>b.setAttribute('aria-pressed',drawPick.has(+b.dataset.n)));
+    $('drawPicked').innerHTML=[...drawPick].sort((a,b)=>a-b).map(n=>`<span class="ball hit">${pad(n)}</span>`).join('');
+    $('addDraw').disabled=!drawPick.size||!$('drawDate').value;
+    $('addDraw').textContent=drawPick.size?`Ajouter le tirage (${drawPick.size} numéros)`:'Ajouter le tirage';
+  }
+  $('drawDate').value=today(); $('drawDate').addEventListener('input',paintDraw);
+  $('addDraw').onclick=()=>{
+    const before=compute().winners.length;
+    state.draws.push({id:rid(), date:$('drawDate').value, nums:[...drawPick].sort((a,b)=>a-b)});
+    state.draws.sort((a,b)=>a.date.localeCompare(b.date));
+    drawPick=new Set(); paintDraw(); save(); render();
+    const after=compute().winners.length;
+    toast(!before&&after?'🎉 Nous avons un gagnant !':'Tirage ajouté');
+    if(!before&&after) window.scrollTo({top:0,behavior:'smooth'});
+  };
+
+  // ---------- clicks ----------
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    if(b.dataset.tab){ document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t===b)); ['feuilles','tirages','classement','exporter'].forEach(p=>$('p-'+p).hidden=p!==b.dataset.tab); return; }
+    if(b.dataset.rm!=null){ const p=b.dataset.rm; arm(b,'Confirmer ?',()=>{ delete state.players[p]; save(); render(); toast(`Feuille de ${p} retirée`); }); return; }
+    if(b.dataset.rmdraw!=null){ const id=b.dataset.rmdraw; arm(b,'Confirmer ?',()=>{ state.draws=state.draws.filter(d=>d.id!==id); save(); render(); toast('Tirage supprimé'); }); return; }
+  });
+  $('search').addEventListener('input',()=>{ shown=60; renderRank(compute()); });
+  $('more').onclick=()=>{ shown+=60; renderRank(compute()); };
+
+  // ---------- export ----------
+  function download(blob,name){
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+  }
+  const H={font:{bold:true,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'13294B'}},alignment:{horizontal:'center'}};
+  const HIT={font:{bold:true},fill:{fgColor:{rgb:'F2C94C'}},alignment:{horizontal:'center'}};
+  const NUM={alignment:{horizontal:'center'}};
+  const WIN={font:{bold:true},fill:{fgColor:{rgb:'B7E1C7'}}};
+  function sheetFrom(aoa,styler,cols){
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    aoa.forEach((row,r)=>row.forEach((v,ci)=>{ const ref=XLSX.utils.encode_cell({r,c:ci}); if(ws[ref]){ const s=styler(r,ci,v); if(s) ws[ref].s=s; } }));
+    if(cols) ws['!cols']=cols.map(w=>({wch:w}));
+    return ws;
+  }
+  $('dlXlsx').onclick=()=>{
+    if(typeof XLSX==='undefined') return toast('Export indisponible : vérifie ta connexion');
+    const c=compute(); if(!c.series.length) return toast('Aucune série à exporter');
+    const winSet=new Set(c.winners); const wb=XLSX.utils.book_new();
+    // all series
+    const head=['Joueuse','#','Participant','Téléphone','N1','N2','N3','N4','N5','N6','N7','N8','N9','N10','Tirés'];
+    const rowsAll=[head], meta=[null];
+    c.series.forEach(s=>{ rowsAll.push([s.player,s.idx,s.name,s.phone,...s.nums.map(pad),s.hits+'/10']); meta.push(s); });
+    XLSX.utils.book_append_sheet(wb,sheetFrom(rowsAll,(r,ci)=>{
+      if(r===0) return H; const s=meta[r];
+      if(ci>=4&&ci<=13) return c.drawn.has(s.nums[ci-4])?HIT:NUM;
+      if(winSet.has(s)) return WIN; return null;
+    },[22,4,24,14,5,5,5,5,5,5,5,5,5,5,7]),'Toutes les séries');
+    // ranking
+    const rk=ranked(c); const rows2=[['Rang','Tirés','Participant','Téléphone','Joueuse','Série #',...Array.from({length:10},(_,i)=>'N'+(i+1))]], m2=[null];
+    rk.forEach((s,i)=>{ rows2.push([i+1,s.hits+'/10',s.name,s.phone,s.player,s.idx,...s.nums.map(pad)]); m2.push(s); });
+    XLSX.utils.book_append_sheet(wb,sheetFrom(rows2,(r,ci)=>{
+      if(r===0) return H; const s=m2[r];
+      if(ci>=6) return c.drawn.has(s.nums[ci-6])?HIT:NUM;
+      if(winSet.has(s)) return WIN; return null;
+    },[6,7,24,14,22,7,5,5,5,5,5,5,5,5,5,5]),'Classement');
+    // draws
+    const rows3=[['Tirage','Date','Numéros tirés']]; state.draws.forEach((d,i)=>rows3.push([i+1,d.date,d.nums.map(pad).join(' ')]));
+    rows3.push([]); rows3.push(['','Total sortis',[...c.drawn].sort((a,b)=>a-b).map(pad).join(' ')]);
+    XLSX.utils.book_append_sheet(wb,sheetFrom(rows3,r=>r===0?H:null,[8,12,60]),'Tirages');
+    // players
+    const rows4=[['Joueuse','Séries','Montant ($)','Minimum 60']]; let tot=0;
+    Object.keys(state.players).sort((a,b)=>a.localeCompare(b,'fr')).forEach(p=>{ const n=state.players[p].rows.length; tot+=n; rows4.push([p,n,n*PRICE,n>=MIN?'Oui':'Non']); });
+    rows4.push([]); rows4.push(['TOTAL',tot,tot*PRICE,'']);
+    XLSX.utils.book_append_sheet(wb,sheetFrom(rows4,r=>r===0?H:null,[24,8,12,12]),'Joueuses');
+    const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    download(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`LOTO-FELINES-CONSOLIDE-${today()}.xlsx`);
+    toast('Fichier Excel téléchargé');
+  };
+  $('copySum').onclick=async()=>{ const ta=$('summary'); try{ await navigator.clipboard.writeText(ta.value); toast('Résumé copié'); }catch(e){ ta.focus(); ta.select(); toast('Texte sélectionné : fais Copier'); } };
+  $('backup').onclick=()=>{ download(new Blob([JSON.stringify(state)],{type:'application/json'}),`LOTO-FELINES-SAUVEGARDE-${today()}.json`); toast('Sauvegarde téléchargée'); };
+  $('restoreIn').addEventListener('change',async e=>{
+    const f=e.target.files[0]; e.target.value=''; if(!f) return;
+    try{ const v=JSON.parse(await f.text()); if(!v||!v.players||!Array.isArray(v.draws)) throw 0; state=v; save(); render(); toast('Sauvegarde restaurée'); }
+    catch(err){ toast('Fichier de sauvegarde non valide'); }
+  });
+  $('wipe').onclick=()=>arm($('wipe'),'Confirmer : tout effacer ?',()=>{ state={players:{},draws:[]}; save(); render(); $('importLog').innerHTML=''; toast('Tout a été effacé'); });
+
+  load(); paintDraw(); render();
+})();
+</script>
+</body>
+</html>
