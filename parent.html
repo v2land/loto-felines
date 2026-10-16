@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loto 10/49 Félines — Feuille du parent</title>
+<title>Loto 10/49 Félines — Feuille de la joueuse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -91,7 +91,7 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
     <div class="stripes" aria-hidden="true"></div>
     <div class="kicker">Financement hockey féminin · Saison 26-27</div>
     <h1>Loto 10/49<br>Félines M15 B</h1>
-    <p class="sub">La feuille du parent : inscris les séries vendues par ta joueuse, puis envoie-la à Isabelle.</p>
+    <p class="sub">La feuille de la joueuse : inscris les séries vendues, puis envoie-la à Isabelle.</p>
     <div class="facts">
       <div class="fact"><b>5 $</b><span>par série de 10 numéros</span></div>
       <div class="fact"><b>60 séries</b><span>minimum par joueuse</span></div>
@@ -111,6 +111,8 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
       <div class="done-msg" id="doneMsg" hidden>Feuille complète ! Tu peux l'envoyer à Isabelle.</div>
     </div>
     <button class="btn wide" style="margin-top:.8rem" id="addBtn">+ Ajouter une série</button>
+    <button class="btn ghost wide" style="margin-top:.5rem" id="shareBtn">Copier le lien pour mes amis</button>
+    <input type="text" id="shareOut" readonly hidden style="margin-top:.5rem" aria-label="Lien pour les amis">
     <div class="notice" id="storageWarn">La feuille est gardée sur cet appareil. Reviens toujours avec le même téléphone ou ordinateur, et le même navigateur.</div>
   </section>
 
@@ -266,6 +268,14 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
   };
 
   $('addBtn').onclick=()=>openEditor(null);
+  $('shareBtn').onclick=async()=>{
+    const name=sheet.player.trim();
+    if(!name){ $('playerName').focus(); return toast('Inscris d\'abord le nom de la joueuse'); }
+    const u=new URL('amis.html', location.href); u.search=''; u.hash=''; u.searchParams.set('joueuse', name);
+    const out=$('shareOut'); out.value=u.toString();
+    try{ await navigator.clipboard.writeText(out.value); out.hidden=true; toast('Lien copié ! Colle-le dans tes messages'); }
+    catch(e){ out.hidden=false; out.focus(); out.select(); toast('Lien sélectionné : fais Copier'); }
+  };
   $('edPhone').addEventListener('input',()=>{ liveFmt($('edPhone')); checkPhone(false); });
   $('edPhone').addEventListener('blur',()=>{ $('edPhone').value=fmtPhone($('edPhone').value); checkPhone(true); });
   let t; $('playerName').addEventListener('input',e=>{ sheet.player=e.target.value; clearTimeout(t); t=setTimeout(save,400); });

@@ -73,6 +73,7 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
     <div class="stripes" aria-hidden="true"></div>
     <div class="kicker">Financement hockey féminin · Félines M15 B</div>
     <h1>Loto 10/49<br>Choisis tes numéros</h1>
+    <p id="forWho" hidden style="font-size:1.15rem;opacity:1">Tu encourages <b id="forName" style="color:#f2c94c"></b> 🏒</p>
     <p>5 $ la série de 10 numéros. Merci d'encourager notre équipe !</p>
     <div class="prize"><span><b>500 $</b> au gagnant</span><span>Tirage dès le <b>7 nov. 2026</b></span></div>
   </header>
@@ -82,7 +83,7 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
     <ol style="margin:.4rem 0 0;padding-left:1.2rem">
       <li>Écris ton nom et ton téléphone.</li>
       <li>Choisis 10 numéros, puis touche « Ajouter cette série ».</li>
-      <li>Touche « Copier mon message », envoie-le à la joueuse et paie-la 5 $ par série.</li>
+      <li>Touche « Copier mon message », envoie-le <span class="jTo">à la joueuse</span> et paie-la 5 $ par série.</li>
     </ol>
   </section>
 
@@ -109,11 +110,11 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
   </section>
 
   <section class="card" id="sendCard" hidden>
-    <div class="step">3 · Envoie à la joueuse</div>
+    <div class="step">3 · Envoie <span class="jTo">à la joueuse</span></div>
     <div class="total" style="margin-top:.4rem"><span id="total">0 $</span></div>
-    <div class="muted"><span id="nSeries">0</span> série(s) · à payer à la joueuse</div>
+    <div class="muted"><span id="nSeries">0</span> série(s) · à payer <span class="jTo">à la joueuse</span></div>
     <button class="btn send wide" style="margin-top:.8rem" id="copy">Copier mon message</button>
-    <p class="muted" style="margin:.5rem 0 .3rem">Colle-le ensuite dans un texto ou Messenger à la joueuse.</p>
+    <p class="muted" style="margin:.5rem 0 .3rem">Colle-le ensuite dans un texto ou Messenger <span class="jTo">à la joueuse</span>.</p>
     <textarea id="msg" readonly></textarea>
   </section>
 </div>
@@ -126,6 +127,14 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clean=s=>String(s).replace(/[·|\n\r]/g,' ').replace(/\s+/g,' ').trim();
   const PRICE=5;
+  let J='';
+  try{ J=(new URLSearchParams(location.search).get('joueuse')||'').replace(/[·|\n\r]/g,' ').replace(/\s+/g,' ').trim().slice(0,60); }catch(e){}
+  const jFirst=J.split(' ')[0];
+  if(J){
+    $('forWho').hidden=false; $('forName').textContent=J;
+    document.querySelectorAll('.jTo').forEach(el=>el.textContent='à '+jFirst);
+    document.title='Loto 10/49 Félines — Encourage '+J;
+  }
   let picked=new Set(), series=[];
 
   function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600);}
@@ -153,7 +162,8 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
 
   function message(){
     const name=clean($('name').value)||'-', phone=clean(fmtPhone($('phone').value))||'-';
-    const lines=series.map(s=>`LOTO FÉLINES · ${name} · ${phone} · ${s.map(pad).join(' ')}`);
+    const lines=J?[`Pour ${J}`]:[];
+    series.forEach(s=>lines.push(`LOTO FÉLINES · ${name} · ${phone} · ${s.map(pad).join(' ')}`));
     lines.push(`Total : ${series.length} série(s) = ${series.length*PRICE} $`);
     return lines.join('\n');
   }
@@ -178,7 +188,7 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
   $('copy').onclick=async()=>{
     if(!clean($('name').value)){$('name').focus();return toast('Inscris ton nom d\'abord');}
     const ta=$('msg'); ta.value=message();
-    try{await navigator.clipboard.writeText(ta.value);toast('Message copié ! Colle-le à la joueuse');}
+    try{await navigator.clipboard.writeText(ta.value);toast('Message copié ! Colle-le '+(J?'à '+jFirst:'à la joueuse'));}
     catch(e){ta.focus();ta.select();toast('Message sélectionné : fais Copier');}
   };
   paint(); render();
