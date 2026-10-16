@@ -79,11 +79,14 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
 @media(min-width:640px){.overlay{align-items:center}.sheet{border-radius:18px}}
 .toast{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.6rem 1rem;border-radius:10px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 .toast.show{opacity:1}
+.inapp{background:var(--warn);color:#fff;border-radius:12px;padding:.75rem .9rem;margin-bottom:.8rem;font-weight:600;line-height:1.4}
+.inapp span{font-weight:400;display:block;margin-top:.2rem}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="inapp" id="inapp" hidden>Ouvre ce lien dans Safari ou Chrome pour ne pas perdre ta feuille.<span>Touche le menu … (ou ⋮) en haut, puis « Ouvrir dans le navigateur ».</span></div>
   <header class="hero">
     <div class="stripes" aria-hidden="true"></div>
     <div class="kicker">Financement hockey féminin · Saison 26-27</div>
@@ -104,6 +107,7 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
       <div class="bigcount"><span id="cnt">0</span><span class="muted" style="font-size:1.1rem"> / 60 séries</span></div>
       <div class="progress" id="prog"><i id="bar" style="width:0%"></i></div>
       <div class="muted"><span id="money">0 $</span> amassés · <span id="saveState">Gardé sur cet appareil</span></div>
+      <div class="muted" id="stamp" style="margin-top:.15rem"></div>
       <div class="done-msg" id="doneMsg" hidden>Feuille complète ! Tu peux l'envoyer à Isabelle.</div>
     </div>
     <button class="btn wide" style="margin-top:.8rem" id="addBtn">+ Ajouter une série</button>
@@ -137,6 +141,17 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
       <textarea id="textOut" readonly></textarea>
       <button class="btn small" style="margin-top:.4rem" id="copyBtn">Copier le texte</button>
     </div>
+  </section>
+
+  <section class="card">
+    <h2 style="font-size:1.5rem">Sauvegarde</h2>
+    <p class="muted" style="margin:.3rem 0 .6rem">Pour changer de téléphone ou de navigateur : sauvegarde ici, puis restaure le fichier sur l'autre appareil.</p>
+    <div class="row">
+      <button class="btn ghost" style="flex:1" id="bkBtn">Sauvegarder</button>
+      <label class="btn ghost" style="flex:1;text-align:center" for="rsIn">Restaurer</label>
+      <input type="file" id="rsIn" accept=".json,application/json" hidden>
+    </div>
+    <button class="btn danger wide" style="margin-top:.6rem" id="rsOk" hidden></button>
   </section>
 </div>
 
@@ -179,6 +194,8 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
   function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
   const rid = () => Math.random().toString(36).slice(2,10);
   const key = nums => nums.slice().sort((a,b)=>a-b).join('-');
+  const fmtStamp=ts=>{ try{ return new Date(ts).toLocaleString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } };
+  function dlBlob(blob,name){ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); }
   function phoneDigits(s){ let d=String(s).replace(/\D/g,''); if(d.length>1&&d[0]==='1') d=d.slice(1); return d; }
   function fmtPhone(s){ const d=phoneDigits(s); return d.length===10?d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6):String(s||'').trim(); }
   function liveFmt(el){ const raw=el.value; if(/[^\d\s().\-+]/.test(raw)) return; const d=phoneDigits(raw); if(d.length>10) return; el.value=d.length<=3?d:d.length<=6?d.slice(0,3)+'-'+d.slice(3):d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6); }
@@ -186,10 +203,11 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
 
   function load(){
     try{ const v=JSON.parse(localStorage.getItem(KEY)||'null');
-      if(v && Array.isArray(v.rows)) sheet={player:String(v.player||''), rows:v.rows.filter(r=>Array.isArray(r.nums)&&r.nums.length===10).map(r=>({id:r.id||rid(),name:String(r.name||''),phone:fmtPhone(r.phone||''),nums:r.nums.map(Number)}))};
+      if(v && Array.isArray(v.rows)) sheet={player:String(v.player||''), updatedAt:v.updatedAt||null, rows:v.rows.filter(r=>Array.isArray(r.nums)&&r.nums.length===10).map(r=>({id:r.id||rid(),name:String(r.name||''),phone:fmtPhone(r.phone||''),nums:r.nums.map(Number)}))};
     }catch(e){ storageOk=false; }
   }
-  function save(){
+  function save(touch){
+    if(touch!==false) sheet.updatedAt=Date.now();
     try{ localStorage.setItem(KEY, JSON.stringify(sheet)); $('saveState').textContent='Gardé sur cet appareil ✓'; }
     catch(e){ storageOk=false; $('saveState').textContent='Non gardé : envoie la feuille avant de fermer'; }
   }
@@ -200,6 +218,7 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
     $('bar').style.width=Math.min(100,n/MIN*100)+'%';
     $('prog').classList.toggle('done', n>=MIN);
     $('money').textContent=(n*PRICE)+' $';
+    $('stamp').textContent=n?`Feuille de ${sheet.player||'(nom à inscrire)'} · ${n} série${n>1?'s':''}${sheet.updatedAt?' · modifiée le '+fmtStamp(sheet.updatedAt):''}`:'';
     $('doneMsg').hidden = n<MIN;
     if(document.activeElement!==$('playerName')) $('playerName').value=sheet.player;
     const counts=new Map(); sheet.rows.forEach(r=>{const k=key(r.nums); counts.set(k,(counts.get(k)||0)+1);});
@@ -355,8 +374,32 @@ input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
     if(added) toast(sheet.rows.length>=MIN?'Feuille complète 🎉':`${sheet.rows.length} séries sur la feuille`);
   };
 
+  // backup / restore
+  let pending=null;
+  $('bkBtn').onclick=()=>{
+    if(!sheet.rows.length && !sheet.player) return toast('Rien à sauvegarder pour l\'instant');
+    const p=sheet.player.replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-|-$/g,'');
+    dlBlob(new Blob([JSON.stringify({type:'loto-felines-parent',sheet})],{type:'application/json'}),'LOTO-FELINES-SAUVEGARDE'+(p?'-'+p:'')+'.json');
+    toast('Sauvegarde téléchargée');
+  };
+  $('rsIn').addEventListener('change',async e=>{
+    const f=e.target.files[0]; e.target.value=''; if(!f) return;
+    try{
+      const v=JSON.parse(await f.text()); const sh=v&&v.sheet;
+      if(!v||v.type!=='loto-felines-parent'||!sh||!Array.isArray(sh.rows)) throw 0;
+      pending=sh;
+      const b=$('rsOk'); b.hidden=false;
+      b.textContent=`Remplacer ma feuille (${sheet.rows.length} séries) par la sauvegarde de ${sh.player||'—'} (${sh.rows.length} séries)`;
+    }catch(err){ toast('Fichier de sauvegarde non valide'); }
+  });
+  $('rsOk').onclick=()=>{
+    if(!pending) return;
+    sheet={player:String(pending.player||''), updatedAt:pending.updatedAt||Date.now(), rows:pending.rows.filter(r=>Array.isArray(r.nums)&&r.nums.length===10).map(r=>({id:r.id||rid(),name:String(r.name||''),phone:fmtPhone(r.phone||''),nums:r.nums.map(Number)}))};
+    pending=null; $('rsOk').hidden=true; save(false); render(); toast('Feuille restaurée');
+  };
+  if(/FBAN|FBAV|FB_IAB|FBIOS|Messenger|Instagram|Line\//i.test(navigator.userAgent||'')) $('inapp').hidden=false;
   load(); render();
-  if(storageOk && sheet.rows.length) save();
+  if(storageOk && sheet.rows.length) save(false);
   if(!storageOk){ $('storageWarn').textContent='Cet appareil ne peut pas garder la feuille. Envoie-la à Isabelle avant de fermer la page.'; }
   if(window.claude && claude.use){ claude.use('downloads').then(d=>{ downloads=d; }).catch(()=>{}); }
 })();

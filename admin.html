@@ -78,11 +78,14 @@ td.n{font-variant-numeric:tabular-nums;text-align:right}
 .draw{border-bottom:1px solid var(--line);padding:.55rem 0}
 .toast{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.6rem 1rem;border-radius:10px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 .toast.show{opacity:1}
+.inapp{background:var(--warn);color:#fff;border-radius:12px;padding:.75rem .9rem;margin-bottom:.8rem;font-weight:600;line-height:1.4}
+.inapp span{font-weight:400;display:block;margin-top:.2rem}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="inapp" id="inapp" hidden>Ouvre ce lien dans Safari ou Chrome pour ne pas perdre les données du loto.<span>Touche le menu … (ou ⋮) en haut, puis « Ouvrir dans le navigateur ».</span></div>
   <header class="hero">
     <div class="stripes" aria-hidden="true"></div>
     <div class="kicker">Félines M15 B · Administration</div>
@@ -93,6 +96,7 @@ td.n{font-variant-numeric:tabular-nums;text-align:right}
       <div class="stat"><b id="stMoney">0 $</b><span>amassés</span></div>
       <div class="stat"><b id="stDraws">0</b><span>tirages</span></div>
     </div>
+    <div id="stamp" style="position:relative;margin-top:.7rem;font-size:.88rem;opacity:.9"></div>
   </header>
 
   <section class="winner" id="winner" hidden></section>
@@ -193,11 +197,12 @@ td.n{font-variant-numeric:tabular-nums;text-align:right}
 
   function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2800);}
   const rid=()=>Math.random().toString(36).slice(2,10);
+  const fmtStamp=ts=>{ try{ return new Date(ts).toLocaleString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } };
   const key=nums=>nums.slice().sort((a,b)=>a-b).join('-');
   const fmtDate=d=>{ try{ return new Date(d+'T12:00:00').toLocaleDateString('fr-CA',{day:'numeric',month:'long',year:'numeric'}); }catch(e){ return d; } };
   function today(){ const d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 
-  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){ toast('Attention : sauvegarde impossible dans ce navigateur'); } }
+  function save(touch){ if(touch!==false) state.updatedAt=Date.now(); try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){ toast('Attention : sauvegarde impossible dans ce navigateur'); } }
   function load(){ try{ const v=JSON.parse(localStorage.getItem(KEY)||'null'); if(v&&v.players&&Array.isArray(v.draws)) state=v; }catch(e){} }
 
   // two-tap confirm
@@ -239,6 +244,10 @@ td.n{font-variant-numeric:tabular-nums;text-align:right}
     $('stSeries').textContent=c.series.length;
     $('stMoney').textContent=(c.series.length*PRICE).toLocaleString('fr-CA')+' $';
     $('stDraws').textContent=state.draws.length;
+    const parts=[];
+    if(state.updatedAt) parts.push('Modifié le '+fmtStamp(state.updatedAt));
+    parts.push(state.lastBackup?'dernière sauvegarde le '+fmtStamp(state.lastBackup):'aucune sauvegarde');
+    $('stamp').textContent=(players.length||state.draws.length)?parts.join(' · '):'';
     renderWinner(c); renderPlayers(c); renderDraws(c); renderRank(c); renderSummary(c);
   }
   function renderWinner(c){
@@ -443,7 +452,7 @@ td.n{font-variant-numeric:tabular-nums;text-align:right}
     toast('Fichier Excel téléchargé');
   };
   $('copySum').onclick=async()=>{ const ta=$('summary'); try{ await navigator.clipboard.writeText(ta.value); toast('Résumé copié'); }catch(e){ ta.focus(); ta.select(); toast('Texte sélectionné : fais Copier'); } };
-  $('backup').onclick=()=>{ download(new Blob([JSON.stringify(state)],{type:'application/json'}),`LOTO-FELINES-SAUVEGARDE-${today()}.json`); toast('Sauvegarde téléchargée'); };
+  $('backup').onclick=()=>{ state.lastBackup=Date.now(); save(false); render(); download(new Blob([JSON.stringify(state)],{type:'application/json'}),`LOTO-FELINES-SAUVEGARDE-${today()}.json`); toast('Sauvegarde téléchargée'); };
   $('restoreIn').addEventListener('change',async e=>{
     const f=e.target.files[0]; e.target.value=''; if(!f) return;
     try{ const v=JSON.parse(await f.text()); if(!v||!v.players||!Array.isArray(v.draws)) throw 0; state=v; save(); render(); toast('Sauvegarde restaurée'); }
@@ -451,6 +460,7 @@ td.n{font-variant-numeric:tabular-nums;text-align:right}
   });
   $('wipe').onclick=()=>arm($('wipe'),'Confirmer : tout effacer ?',()=>{ state={players:{},draws:[]}; save(); render(); $('importLog').innerHTML=''; toast('Tout a été effacé'); });
 
+  if(/FBAN|FBAV|FB_IAB|FBIOS|Messenger|Instagram|Line\//i.test(navigator.userAgent||'')) $('inapp').hidden=false;
   load(); paintDraw(); render();
 })();
 </script>
