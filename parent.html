@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Loto 10/49 Félines — Feuille du parent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#eef3f7; --surface:#ffffff; --surface2:#f5f8fb; --ink:#0f1b2d; --muted:#5a6a7e;
+  --line:#d5dfe9; --accent:#d4a017; --accent-ink:#1a1300; --ok:#1f7a4d; --warn:#b4471d; --ball:#13294b; --ball-ink:#fff;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark; --bg:#0a121e; --surface:#121d2c; --surface2:#182638; --ink:#e8eef5; --muted:#93a3b7;
+    --line:#26374d; --accent:#e8b82e; --accent-ink:#1a1300; --ok:#5fcf95; --warn:#f08a62; --ball:#e8b82e; --ball-ink:#1a1300;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark; --bg:#0a121e; --surface:#121d2c; --surface2:#182638; --ink:#e8eef5; --muted:#93a3b7;
+  --line:#26374d; --accent:#e8b82e; --accent-ink:#1a1300; --ok:#5fcf95; --warn:#f08a62; --ball:#e8b82e; --ball-ink:#1a1300;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:1rem}
+h1,h2,h3{font-family:"Barlow Condensed","Arial Narrow",Barlow,sans-serif;margin:0;line-height:1.05}
+.hero{background:#13294b;color:#fff;border-radius:18px;padding:1.4rem 1.3rem 1.2rem;position:relative;overflow:hidden}
+.hero h1{font-size:clamp(2.2rem,8vw,3.2rem);font-weight:800}
+.hero .kicker{color:#f2c94c;font-weight:600}
+.hero .sub{opacity:.88;margin-top:.3rem;max-width:34ch}
+.stripes{position:absolute;right:-30px;top:0;bottom:0;width:110px;background:repeating-linear-gradient(115deg,transparent 0 18px,rgba(212,160,23,.9) 18px 30px);pointer-events:none}
+.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;margin-top:1rem;position:relative}
+.fact{background:rgba(255,255,255,.09);border-radius:10px;padding:.5rem .65rem}
+.fact b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:1.3rem;font-weight:800;color:#f2c94c}
+.fact span{font-size:.84rem;opacity:.92}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:1rem;margin-top:.8rem}
+label{display:block;font-weight:600;font-size:.9rem;margin-bottom:.25rem;color:var(--muted)}
+input[type=text],input[type=tel],textarea{width:100%;font:inherit;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:.65rem .75rem}
+textarea{font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;min-height:12rem}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.btn{font:600 1rem Barlow,sans-serif;border:0;border-radius:12px;padding:.75rem 1rem;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:.4rem .7rem;font-size:.9rem;border-radius:9px}
+.btn.danger{background:transparent;color:var(--warn);border:1px solid var(--line)}
+.btn.danger.armed{background:var(--warn);color:#fff;border-color:var(--warn)}
+.btn.send{background:var(--ok);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.wide{width:100%}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.progress{height:12px;background:var(--surface2);border-radius:99px;overflow:hidden;border:1px solid var(--line);margin:.5rem 0 .3rem}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.progress.done i{background:var(--ok)}
+.bigcount{font-family:"Barlow Condensed",sans-serif;font-size:2.6rem;font-weight:800;line-height:1}
+.muted{color:var(--muted);font-size:.92rem}
+.done-msg{color:var(--ok);font-weight:600;margin-top:.4rem}
+.series{display:flex;flex-direction:column;gap:.5rem;margin-top:.6rem}
+.s-item{border:1px solid var(--line);border-radius:12px;padding:.65rem .75rem;background:var(--surface2)}
+.s-head{display:flex;justify-content:space-between;gap:.5rem;align-items:baseline}
+.s-num{font-family:"Barlow Condensed",sans-serif;font-weight:800;color:var(--muted);margin-right:.35rem}
+.balls{display:flex;flex-wrap:wrap;gap:.25rem;margin:.45rem 0}
+.ball{width:2rem;height:2rem;border-radius:50%;display:grid;place-items:center;background:var(--ball);color:var(--ball-ink);font:700 .9rem "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums}
+.dup{color:var(--warn);font-weight:600;font-size:.88rem}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.35rem;margin:.6rem 0}
+.cell{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:700 1.05rem "Barlow Condensed",sans-serif;cursor:pointer;font-variant-numeric:tabular-nums}
+.cell[aria-pressed="true"]{background:var(--ball);color:var(--ball-ink);border-color:var(--ball)}
+.cell:disabled{opacity:.35}
+.notice{border-left:4px solid var(--accent);background:var(--surface2);padding:.6rem .8rem;border-radius:8px;font-size:.93rem;margin-top:.8rem}
+.steps{margin:.4rem 0 0;padding-left:1.2rem}
+.steps li{margin:.2rem 0}
+.overlay{position:fixed;inset:0;background:rgba(5,10,20,.55);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.overlay.open{display:flex}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:1rem 1rem calc(1rem + env(safe-area-inset-bottom,0px))}
+@media(min-width:640px){.overlay{align-items:center}.sheet{border-radius:18px}}
+.toast{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.6rem 1rem;border-radius:10px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
+.toast.show{opacity:1}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="stripes" aria-hidden="true"></div>
+    <div class="kicker">Financement hockey féminin · Saison 26-27</div>
+    <h1>Loto 10/49<br>Félines M15 B</h1>
+    <p class="sub">La feuille du parent : inscris les séries vendues par ta joueuse, puis envoie-la à Isabelle.</p>
+    <div class="facts">
+      <div class="fact"><b>5 $</b><span>par série de 10 numéros</span></div>
+      <div class="fact"><b>60 séries</b><span>minimum par joueuse</span></div>
+      <div class="fact"><b>7 nov. 2026</b><span>début du tirage</span></div>
+      <div class="fact"><b>500 $</b><span>au gagnant · 50 $ à sa joueuse</span></div>
+    </div>
+  </header>
+
+  <section class="card">
+    <label for="playerName">Nom de la joueuse</label>
+    <input type="text" id="playerName" placeholder="Prénom et nom" autocomplete="off">
+    <div style="margin-top:.9rem">
+      <div class="bigcount"><span id="cnt">0</span><span class="muted" style="font-size:1.1rem"> / 60 séries</span></div>
+      <div class="progress" id="prog"><i id="bar" style="width:0%"></i></div>
+      <div class="muted"><span id="money">0 $</span> amassés · <span id="saveState">Gardé sur cet appareil</span></div>
+      <div class="done-msg" id="doneMsg" hidden>Feuille complète ! Tu peux l'envoyer à Isabelle.</div>
+    </div>
+    <button class="btn wide" style="margin-top:.8rem" id="addBtn">+ Ajouter une série</button>
+    <div class="notice" id="storageWarn">La feuille est gardée sur cet appareil. Reviens toujours avec le même téléphone ou ordinateur, et le même navigateur.</div>
+  </section>
+
+  <section class="card">
+    <h2 style="font-size:1.5rem">Séries vendues</h2>
+    <div class="series" id="list"></div>
+    <p class="muted" id="empty">Aucune série pour l'instant. Touche « Ajouter une série » pour commencer.</p>
+  </section>
+
+  <section class="card">
+    <h2 style="font-size:1.5rem">Coller les séries reçues</h2>
+    <p class="muted" style="margin:.3rem 0 .5rem">Colle ici les messages envoyés par les amis (un ou plusieurs à la fois). Les séries s'ajoutent automatiquement.</p>
+    <textarea id="pasteIn" style="min-height:7rem" placeholder="LOTO FÉLINES · Marie Roy · 514-555-1234 · 03 07 12 18 22 29 33 40 41 47"></textarea>
+    <button class="btn wide" style="margin-top:.5rem" id="pasteBtn">Ajouter les séries collées</button>
+    <p class="muted" id="pasteRes" style="margin:.5rem 0 0"></p>
+  </section>
+
+  <section class="card">
+    <h2 style="font-size:1.5rem">Envoyer à Isabelle</h2>
+    <ol class="steps muted">
+      <li>Touche le bouton ci-dessous pour télécharger la feuille Excel.</li>
+      <li>Envoie le fichier en pièce jointe à <strong>felinesm15b@gmail.com</strong>.</li>
+    </ol>
+    <button class="btn send wide" style="margin-top:.7rem" id="dlBtn">Télécharger la feuille pour Isabelle</button>
+    <button class="btn ghost wide" style="margin-top:.5rem" id="textBtn">Afficher en texte (si le téléchargement ne marche pas)</button>
+    <div id="textBox" hidden style="margin-top:.7rem">
+      <p class="muted">Copie ce texte et colle-le dans un courriel à felinesm15b@gmail.com.</p>
+      <textarea id="textOut" readonly></textarea>
+      <button class="btn small" style="margin-top:.4rem" id="copyBtn">Copier le texte</button>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="ov" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+  <div class="sheet">
+    <div class="row" style="justify-content:space-between">
+      <h3 id="edTitle" style="font-size:1.6rem">Nouvelle série</h3>
+      <button class="btn ghost small" id="edClose">Fermer</button>
+    </div>
+    <div style="margin-top:.7rem">
+      <label for="edName">Participant (nom)</label>
+      <input type="text" id="edName" autocomplete="off">
+    </div>
+    <div style="margin-top:.6rem">
+      <label for="edPhone">Téléphone</label>
+      <input type="tel" id="edPhone" inputmode="tel" autocomplete="off" placeholder="514-555-1234">
+      <p class="dup" id="edPhoneWarn" hidden style="margin:.25rem 0 0">Vérifie le numéro : il faut 10 chiffres.</p>
+    </div>
+    <div class="row" style="margin-top:.8rem;justify-content:space-between">
+      <strong>Numéros : <span id="edCount">0</span>/10</strong>
+      <button class="btn ghost small" id="edRandom">Compléter au hasard</button>
+    </div>
+    <div class="grid" id="edGrid"></div>
+    <div class="balls" id="edBalls"></div>
+    <p class="dup" id="edErr"></p>
+    <button class="btn wide" id="edSave" disabled>Enregistrer la série</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const pad = n => String(n).padStart(2,'0');
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const MIN = 60, PRICE = 5, KEY = 'loto-felines-parent-v2';
+  let sheet = {player:'', rows:[]};
+  let editing = null, picked = new Set(), downloads = null, storageOk = true;
+
+  function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
+  const rid = () => Math.random().toString(36).slice(2,10);
+  const key = nums => nums.slice().sort((a,b)=>a-b).join('-');
+  function phoneDigits(s){ let d=String(s).replace(/\D/g,''); if(d.length>1&&d[0]==='1') d=d.slice(1); return d; }
+  function fmtPhone(s){ const d=phoneDigits(s); return d.length===10?d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6):String(s||'').trim(); }
+  function liveFmt(el){ const raw=el.value; if(/[^\d\s().\-+]/.test(raw)) return; const d=phoneDigits(raw); if(d.length>10) return; el.value=d.length<=3?d:d.length<=6?d.slice(0,3)+'-'+d.slice(3):d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6); }
+  function checkPhone(strict){ const el=$('edPhone'); const d=phoneDigits(el.value); if(d.length===10||!el.value.trim()) $('edPhoneWarn').hidden=true; else if(strict) $('edPhoneWarn').hidden=false; }
+
+  function load(){
+    try{ const v=JSON.parse(localStorage.getItem(KEY)||'null');
+      if(v && Array.isArray(v.rows)) sheet={player:String(v.player||''), rows:v.rows.filter(r=>Array.isArray(r.nums)&&r.nums.length===10).map(r=>({id:r.id||rid(),name:String(r.name||''),phone:fmtPhone(r.phone||''),nums:r.nums.map(Number)}))};
+    }catch(e){ storageOk=false; }
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(sheet)); $('saveState').textContent='Gardé sur cet appareil ✓'; }
+    catch(e){ storageOk=false; $('saveState').textContent='Non gardé : envoie la feuille avant de fermer'; }
+  }
+
+  function render(){
+    const n=sheet.rows.length;
+    $('cnt').textContent=n;
+    $('bar').style.width=Math.min(100,n/MIN*100)+'%';
+    $('prog').classList.toggle('done', n>=MIN);
+    $('money').textContent=(n*PRICE)+' $';
+    $('doneMsg').hidden = n<MIN;
+    if(document.activeElement!==$('playerName')) $('playerName').value=sheet.player;
+    const counts=new Map(); sheet.rows.forEach(r=>{const k=key(r.nums); counts.set(k,(counts.get(k)||0)+1);});
+    $('list').innerHTML = sheet.rows.map((r,i)=>`<div class="s-item">
+      <div class="s-head"><div><span class="s-num">#${i+1}</span><strong>${esc(r.name)||'<span class="muted">Sans nom</span>'}</strong></div><span class="muted">${esc(r.phone)}</span></div>
+      <div class="balls">${r.nums.map(x=>`<span class="ball">${pad(x)}</span>`).join('')}</div>
+      ${counts.get(key(r.nums))>1?'<div class="dup">Cette série est entrée plus d\'une fois</div>':''}
+      <div class="row"><button class="btn ghost small" data-edit="${i}">Modifier</button><button class="btn danger small" data-del="${i}">Supprimer</button></div>
+    </div>`).join('');
+    $('empty').hidden = n>0;
+    if(!$('textBox').hidden) $('textOut').value=asText();
+  }
+
+  // editor
+  const grid=$('edGrid');
+  for(let i=1;i<=49;i++){ const b=document.createElement('button'); b.type='button'; b.className='cell'; b.textContent=pad(i); b.dataset.n=i; b.setAttribute('aria-pressed','false'); grid.appendChild(b); }
+  grid.addEventListener('click',e=>{ const b=e.target.closest('.cell'); if(!b) return; const n=+b.dataset.n; if(picked.has(n)) picked.delete(n); else if(picked.size<10) picked.add(n); paint(); });
+  function paint(){
+    const full=picked.size>=10;
+    grid.querySelectorAll('.cell').forEach(b=>{ const on=picked.has(+b.dataset.n); b.setAttribute('aria-pressed',on); b.disabled=full&&!on; });
+    $('edBalls').innerHTML=[...picked].sort((a,b)=>a-b).map(n=>`<span class="ball">${pad(n)}</span>`).join('');
+    $('edCount').textContent=picked.size;
+    let err='';
+    if(picked.size===10){ const k=key([...picked]); if(sheet.rows.some((r,i)=>i!==editing && key(r.nums)===k)) err='Cette série existe déjà sur la feuille.'; }
+    $('edErr').textContent=err;
+    $('edSave').disabled = picked.size!==10 || !!err;
+  }
+  function openEditor(idx){
+    editing=idx; const r=idx!=null?sheet.rows[idx]:null;
+    $('edTitle').textContent=r?`Modifier la série #${idx+1}`:`Série #${sheet.rows.length+1}`;
+    $('edName').value=r?r.name:''; $('edPhone').value=r?r.phone:''; $('edPhoneWarn').hidden=true;
+    picked=new Set(r?r.nums:[]); paint();
+    $('ov').classList.add('open'); setTimeout(()=>$('edName').focus(),50);
+  }
+  function closeEditor(){ $('ov').classList.remove('open'); editing=null; }
+  $('edClose').onclick=closeEditor;
+  $('ov').addEventListener('click',e=>{ if(e.target===$('ov')) closeEditor(); });
+  $('edRandom').onclick=()=>{ while(picked.size<10) picked.add(1+Math.floor(Math.random()*49)); paint(); };
+  $('edSave').onclick=()=>{
+    const row={id:editing!=null?sheet.rows[editing].id:rid(), name:$('edName').value.trim(), phone:fmtPhone($('edPhone').value), nums:[...picked].sort((a,b)=>a-b)};
+    const wasNew = editing==null;
+    if(wasNew) sheet.rows.push(row); else sheet.rows[editing]=row;
+    closeEditor(); save(); render();
+    if(wasNew){ toast(sheet.rows.length===MIN?'60 séries ! Feuille complète 🎉':`Série #${sheet.rows.length} ajoutée`); }
+  };
+
+  $('addBtn').onclick=()=>openEditor(null);
+  $('edPhone').addEventListener('input',()=>{ liveFmt($('edPhone')); checkPhone(false); });
+  $('edPhone').addEventListener('blur',()=>{ $('edPhone').value=fmtPhone($('edPhone').value); checkPhone(true); });
+  let t; $('playerName').addEventListener('input',e=>{ sheet.player=e.target.value; clearTimeout(t); t=setTimeout(save,400); });
+  $('list').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    if(b.dataset.edit!=null) openEditor(+b.dataset.edit);
+    if(b.dataset.del!=null){
+      const i=+b.dataset.del;
+      if(b.dataset.armed==='1'){ clearTimeout(b._t); sheet.rows.splice(i,1); save(); render(); toast(`Série #${i+1} supprimée`); return; }
+      $('list').querySelectorAll('[data-armed="1"]').forEach(x=>{ clearTimeout(x._t); x.dataset.armed=''; x.classList.remove('armed'); x.textContent='Supprimer'; });
+      b.dataset.armed='1'; b.classList.add('armed'); b.textContent='Confirmer la suppression ?';
+      b._t=setTimeout(()=>{ b.dataset.armed=''; b.classList.remove('armed'); b.textContent='Supprimer'; },4000);
+    }
+  });
+
+  // export
+  function workbook(){
+    const aoa=[
+      ['FINANCEMENT HOCKEY FÉMININ / FÉLINES / M15 B'],
+      ['SAISON 26-27'],
+      ['NOM DU JOUEUR :', sheet.player],
+      ['Écrivez les chiffres entre 01 et 49 en ordre croissant (du plus petit au plus grand)'],
+      ['5$ par série de 10 numéros','','60 séries minimum (vous pouvez en vendre plus)'],
+      ['Début du tirage :','7 novembre 2026'],
+      ['Gagnant : (500$)','1ere personne dont les 10 numéros auront été tirés'],
+      ['Joueuse gagnante :','50$'],
+      [],
+      ['','PARTICIPANTS (nom)','# TELEPHONE','N1','N2','N3','N4','N5','N6','N7','N8','N9','N10']
+    ];
+    const n=Math.max(MIN,sheet.rows.length);
+    for(let i=0;i<n;i++){ const r=sheet.rows[i]; aoa.push([i+1, r?r.name:'', r?r.phone:'', ...(r?r.nums.map(pad):[])]); }
+    aoa.push([]); aoa.push(['','Total séries',sheet.rows.length,'Montant',(sheet.rows.length*PRICE)+' $']);
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols']=[{wch:5},{wch:28},{wch:16},...Array(10).fill({wch:5})];
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'LOTO 10-49');
+    return XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  }
+  function fname(){ const p=sheet.player.replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-|-$/g,''); return 'LOTO-FELINES'+(p?'-'+p:'')+'.xlsx'; }
+  function asText(){
+    const lines=[`LOTO 10/49 FÉLINES M15 B — ${sheet.player||'(nom de la joueuse)'}`,`${sheet.rows.length} séries · ${sheet.rows.length*PRICE} $`,''];
+    sheet.rows.forEach((r,i)=>lines.push(`${i+1}. ${r.name||'-'} | ${r.phone||'-'} | ${r.nums.map(pad).join(' ')}`));
+    return lines.join('\n');
+  }
+  function showText(){ $('textBox').hidden=false; $('textOut').value=asText(); $('textBox').scrollIntoView({behavior:'smooth',block:'start'}); }
+
+  $('dlBtn').onclick=async()=>{
+    if(!sheet.rows.length) return toast('Ajoute au moins une série');
+    if(!sheet.player.trim()){ $('playerName').focus(); return toast('Inscris le nom de la joueuse'); }
+    const dlb=$('dlBtn');
+    if(sheet.rows.length<MIN && dlb.dataset.armed!=='1'){
+      dlb.dataset.armed='1';
+      dlb.textContent=`La feuille a ${sheet.rows.length} séries sur 60. Touche encore pour télécharger quand même.`;
+      clearTimeout(dlb._t); dlb._t=setTimeout(()=>{ dlb.dataset.armed=''; dlb.textContent='Télécharger la feuille pour Isabelle'; },6000);
+      return;
+    }
+    clearTimeout(dlb._t); dlb.dataset.armed=''; dlb.textContent='Télécharger la feuille pour Isabelle';
+    if(typeof XLSX==='undefined'){ toast('Téléchargement non disponible ici, voici la version texte'); return showText(); }
+    if(!downloads){
+      try{
+        const blob=new Blob([workbook()],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        const url=URL.createObjectURL(blob); const a=document.createElement('a');
+        a.href=url; a.download=fname(); document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+        toast('Fichier prêt : envoie-le à Isabelle');
+      }catch(e){ toast('Téléchargement impossible, voici la version texte'); showText(); }
+      return;
+    }
+    try{ await downloads.save({filename:fname(), data:new Blob([workbook()])}); toast('Fichier prêt : envoie-le à Isabelle'); }
+    catch(e){
+      if(e && e.code==='declined') return;
+      if(e && e.code==='rate_limited') return toast('Un instant, puis réessaie');
+      toast('Téléchargement impossible, voici la version texte'); showText();
+    }
+  };
+  $('textBtn').onclick=showText;
+  $('copyBtn').onclick=async()=>{
+    const ta=$('textOut');
+    try{ await navigator.clipboard.writeText(ta.value); toast('Texte copié'); }
+    catch(e){ ta.focus(); ta.select(); toast('Texte sélectionné : fais Copier'); }
+  };
+
+  // import from friends' messages
+  function parseMsgs(txt){
+    const out=[], bad=[];
+    txt.split(/\r?\n/).forEach(line=>{
+      if(!/^\s*LOTO\s+F[ÉEée]LINES\s*[·|]/i.test(line)) return;
+      const parts=line.split(/\s*[·|]\s*/);
+      const nums=[...new Set((parts[parts.length-1].match(/\d{1,2}/g)||[]).map(Number))];
+      if(parts.length<3 || nums.length!==10 || nums.some(n=>n<1||n>49)){ bad.push(line.trim()); return; }
+      const v=s=>(s&&s.trim()!=='-')?s.trim():'';
+      out.push({id:rid(), name:v(parts[1]), phone:parts.length>3?fmtPhone(v(parts[2])):'', nums:nums.sort((a,b)=>a-b)});
+    });
+    return {out,bad};
+  }
+  $('pasteBtn').onclick=()=>{
+    const {out,bad}=parseMsgs($('pasteIn').value);
+    let added=0, skipped=0;
+    out.forEach(r=>{ if(sheet.rows.some(x=>key(x.nums)===key(r.nums))) skipped++; else { sheet.rows.push(r); added++; } });
+    if(added){ save(); render(); }
+    const msg=[];
+    msg.push(added?`${added} série(s) ajoutée(s).`:'Aucune nouvelle série trouvée.');
+    if(skipped) msg.push(`${skipped} déjà sur la feuille (ignorée).`);
+    if(bad.length) msg.push(`${bad.length} ligne(s) à vérifier : il faut exactement 10 numéros entre 01 et 49.`);
+    $('pasteRes').textContent=msg.join(' ');
+    if(added && !bad.length) $('pasteIn').value='';
+    if(added) toast(sheet.rows.length>=MIN?'Feuille complète 🎉':`${sheet.rows.length} séries sur la feuille`);
+  };
+
+  load(); render();
+  if(storageOk && sheet.rows.length) save();
+  if(!storageOk){ $('storageWarn').textContent='Cet appareil ne peut pas garder la feuille. Envoie-la à Isabelle avant de fermer la page.'; }
+  if(window.claude && claude.use){ claude.use('downloads').then(d=>{ downloads=d; }).catch(()=>{}); }
+})();
+</script>
+</body>
+</html>

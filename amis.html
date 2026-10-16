@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Loto 10/49 Félines — Choisis tes numéros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef3f7; --surface:#ffffff; --surface2:#f5f8fb; --ink:#0f1b2d; --muted:#5a6a7e;
+  --line:#d5dfe9; --accent:#d4a017; --accent-ink:#1a1300; --ok:#1f7a4d; --warn:#b4471d; --ball:#13294b; --ball-ink:#fff;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark; --bg:#0a121e; --surface:#121d2c; --surface2:#182638; --ink:#e8eef5; --muted:#93a3b7;
+    --line:#26374d; --accent:#e8b82e; --accent-ink:#1a1300; --ok:#5fcf95; --warn:#f08a62; --ball:#e8b82e; --ball-ink:#1a1300;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark; --bg:#0a121e; --surface:#121d2c; --surface2:#182638; --ink:#e8eef5; --muted:#93a3b7;
+  --line:#26374d; --accent:#e8b82e; --accent-ink:#1a1300; --ok:#5fcf95; --warn:#f08a62; --ball:#e8b82e; --ball-ink:#1a1300;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:600px;margin:0 auto;padding:1rem}
+h1,h2{font-family:"Barlow Condensed","Arial Narrow",Barlow,sans-serif;margin:0;line-height:1.05}
+.hero{background:#13294b;color:#fff;border-radius:18px;padding:1.3rem;position:relative;overflow:hidden}
+.hero h1{font-size:clamp(2rem,8vw,2.9rem);font-weight:800}
+.kicker{color:#f2c94c;font-weight:600}
+.hero p{opacity:.9;margin:.35rem 0 0;max-width:32ch}
+.stripes{position:absolute;right:-30px;top:0;bottom:0;width:100px;background:repeating-linear-gradient(115deg,transparent 0 18px,rgba(212,160,23,.9) 18px 30px);pointer-events:none}
+.prize{display:flex;gap:.5rem;margin-top:.9rem;position:relative;flex-wrap:wrap}
+.prize span{background:rgba(255,255,255,.1);border-radius:999px;padding:.25rem .7rem;font-size:.88rem}
+.prize b{color:#f2c94c}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:1rem;margin-top:.8rem}
+.step{font-family:"Barlow Condensed",sans-serif;font-weight:800;color:var(--muted);font-size:1rem}
+label{display:block;font-weight:600;font-size:.9rem;margin:.6rem 0 .25rem;color:var(--muted)}
+input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:.65rem .75rem}
+textarea{font:14px/1.45 ui-monospace,Menlo,Consolas,monospace;min-height:8rem}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.btn{font:600 1rem Barlow,sans-serif;border:0;border-radius:12px;padding:.75rem 1rem;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:.4rem .7rem;font-size:.9rem;border-radius:9px}
+.btn.send{background:var(--ok);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.wide{width:100%}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.35rem;margin:.6rem 0}
+.cell{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:700 1.05rem "Barlow Condensed",sans-serif;cursor:pointer;font-variant-numeric:tabular-nums}
+.cell[aria-pressed="true"]{background:var(--ball);color:var(--ball-ink);border-color:var(--ball)}
+.cell:disabled{opacity:.35}
+.balls{display:flex;flex-wrap:wrap;gap:.25rem;margin:.4rem 0}
+.ball{width:2rem;height:2rem;border-radius:50%;display:grid;place-items:center;background:var(--ball);color:var(--ball-ink);font:700 .9rem "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums}
+.s-item{border:1px solid var(--line);border-radius:12px;padding:.55rem .7rem;background:var(--surface2);margin-top:.5rem}
+.s-head{display:flex;justify-content:space-between;align-items:center}
+.s-num{font-family:"Barlow Condensed",sans-serif;font-weight:800;color:var(--muted)}
+.total{font-family:"Barlow Condensed",sans-serif;font-size:2.2rem;font-weight:800;line-height:1}
+.muted{color:var(--muted);font-size:.92rem}
+.err{color:var(--warn);font-weight:600;font-size:.88rem;min-height:1.2em;margin:.2rem 0}
+.toast{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.6rem 1rem;border-radius:10px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
+.toast.show{opacity:1}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="stripes" aria-hidden="true"></div>
+    <div class="kicker">Financement hockey féminin · Félines M15 B</div>
+    <h1>Loto 10/49<br>Choisis tes numéros</h1>
+    <p>5 $ la série de 10 numéros. Merci d'encourager notre équipe !</p>
+    <div class="prize"><span><b>500 $</b> au gagnant</span><span>Tirage dès le <b>7 nov. 2026</b></span></div>
+  </header>
+
+  <section class="card">
+    <h2 style="font-size:1.4rem">Comment ça marche</h2>
+    <ol style="margin:.4rem 0 0;padding-left:1.2rem">
+      <li>Écris ton nom et ton téléphone.</li>
+      <li>Choisis 10 numéros, puis touche « Ajouter cette série ».</li>
+      <li>Touche « Copier mon message », envoie-le à la joueuse et paie-la 5 $ par série.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <div class="step">1 · Tes coordonnées</div>
+    <label for="name">Ton nom</label>
+    <input type="text" id="name" autocomplete="name" placeholder="Prénom et nom">
+    <label for="phone">Ton téléphone</label>
+    <input type="tel" id="phone" inputmode="tel" autocomplete="tel" placeholder="514-555-1234">
+    <p class="err" id="phoneWarn" hidden>Vérifie le numéro : il faut 10 chiffres.</p>
+  </section>
+
+  <section class="card">
+    <div class="step">2 · <span id="pickTitle">Ta série #1</span></div>
+    <div class="row" style="justify-content:space-between;margin-top:.4rem">
+      <strong><span id="count">0</span>/10 numéros</strong>
+      <button class="btn ghost small" id="random">Compléter au hasard</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="balls" id="picked"></div>
+    <p class="err" id="err"></p>
+    <button class="btn wide" id="add" disabled>Ajouter cette série</button>
+    <div id="list"></div>
+  </section>
+
+  <section class="card" id="sendCard" hidden>
+    <div class="step">3 · Envoie à la joueuse</div>
+    <div class="total" style="margin-top:.4rem"><span id="total">0 $</span></div>
+    <div class="muted"><span id="nSeries">0</span> série(s) · à payer à la joueuse</div>
+    <button class="btn send wide" style="margin-top:.8rem" id="copy">Copier mon message</button>
+    <p class="muted" style="margin:.5rem 0 .3rem">Colle-le ensuite dans un texto ou Messenger à la joueuse.</p>
+    <textarea id="msg" readonly></textarea>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const pad=n=>String(n).padStart(2,'0');
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const clean=s=>String(s).replace(/[·|\n\r]/g,' ').replace(/\s+/g,' ').trim();
+  const PRICE=5;
+  let picked=new Set(), series=[];
+
+  function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600);}
+
+  const grid=$('grid');
+  for(let i=1;i<=49;i++){const b=document.createElement('button');b.type='button';b.className='cell';b.textContent=pad(i);b.dataset.n=i;b.setAttribute('aria-pressed','false');grid.appendChild(b);}
+  grid.addEventListener('click',e=>{const b=e.target.closest('.cell');if(!b)return;const n=+b.dataset.n;if(picked.has(n))picked.delete(n);else if(picked.size<10)picked.add(n);paint();});
+  $('random').onclick=()=>{while(picked.size<10)picked.add(1+Math.floor(Math.random()*49));paint();};
+
+  function paint(){
+    const full=picked.size>=10;
+    grid.querySelectorAll('.cell').forEach(b=>{const on=picked.has(+b.dataset.n);b.setAttribute('aria-pressed',on);b.disabled=full&&!on;});
+    $('picked').innerHTML=[...picked].sort((a,b)=>a-b).map(n=>`<span class="ball">${pad(n)}</span>`).join('');
+    $('count').textContent=picked.size;
+    const k=[...picked].sort((a,b)=>a-b).join('-');
+    const dup=picked.size===10&&series.some(s=>s.join('-')===k);
+    $('err').textContent=dup?'Tu as déjà cette série.':'';
+    $('add').disabled=picked.size!==10||dup;
+  }
+
+  $('add').onclick=()=>{
+    series.push([...picked].sort((a,b)=>a-b)); picked=new Set(); paint(); render();
+    toast(`Série #${series.length} ajoutée`);
+  };
+
+  function message(){
+    const name=clean($('name').value)||'-', phone=clean(fmtPhone($('phone').value))||'-';
+    const lines=series.map(s=>`LOTO FÉLINES · ${name} · ${phone} · ${s.map(pad).join(' ')}`);
+    lines.push(`Total : ${series.length} série(s) = ${series.length*PRICE} $`);
+    return lines.join('\n');
+  }
+
+  function render(){
+    $('pickTitle').textContent=`Ta série #${series.length+1}`;
+    $('list').innerHTML=series.map((s,i)=>`<div class="s-item"><div class="s-head"><span class="s-num">Série #${i+1}</span><button class="btn ghost small" data-del="${i}">Retirer</button></div><div class="balls">${s.map(n=>`<span class="ball">${pad(n)}</span>`).join('')}</div></div>`).join('');
+    $('sendCard').hidden=series.length===0;
+    $('total').textContent=(series.length*PRICE)+' $';
+    $('nSeries').textContent=series.length;
+    $('msg').value=message();
+  }
+  $('list').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;series.splice(+b.dataset.del,1);render();paint();});
+  $('name').addEventListener('input',()=>{$('msg').value=message();});
+  function phoneDigits(s){ let d=String(s).replace(/\D/g,''); if(d.length>1&&d[0]==='1') d=d.slice(1); return d; }
+  function fmtPhone(s){ const d=phoneDigits(s); return d.length===10?d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6):String(s).trim(); }
+  function liveFmt(el){ const raw=el.value; if(/[^\d\s().\-+]/.test(raw)) return; const d=phoneDigits(raw); if(d.length>10) return; el.value=d.length<=3?d:d.length<=6?d.slice(0,3)+'-'+d.slice(3):d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6); }
+  function checkPhone(strict){ const el=$('phone'); const d=phoneDigits(el.value); if(d.length===10||!el.value.trim()) $('phoneWarn').hidden=true; else if(strict) $('phoneWarn').hidden=false; }
+  $('phone').addEventListener('input',()=>{ liveFmt($('phone')); checkPhone(false); $('msg').value=message(); });
+  $('phone').addEventListener('blur',()=>{ $('phone').value=fmtPhone($('phone').value); checkPhone(true); $('msg').value=message(); });
+
+  $('copy').onclick=async()=>{
+    if(!clean($('name').value)){$('name').focus();return toast('Inscris ton nom d\'abord');}
+    const ta=$('msg'); ta.value=message();
+    try{await navigator.clipboard.writeText(ta.value);toast('Message copié ! Colle-le à la joueuse');}
+    catch(e){ta.focus();ta.select();toast('Message sélectionné : fais Copier');}
+  };
+  paint(); render();
+})();
+</script>
+</body>
+</html>
